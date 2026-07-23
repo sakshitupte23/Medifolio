@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MediFolio Add Patient</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg">
+                    <i class="fas fa-heartbeat text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">MediFolio</h1>
+                    <p class="text-xs text-gray-500">Secure Medical Records</p>
+                </div>
+            </div>
+
+            <button class="md:hidden text-gray-700">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+
+        </div>
+    </header>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="max-w-5xl mx-auto p-6">
+
+
+        <!-- BACK BUTTON -->
+        <a href="/" class="inline-flex items-center space-x-2 mb-6 text-indigo-700 hover:text-indigo-900 font-medium">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Dashboard</span>
+        </a>
+
+
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Add Patient Record</h2>
+
+        <form id="patient_form" class="space-y-10">
+
+            <!-- SECTION 1: PATIENT IDENTITY -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-700 mb-4">1. Patient Identity</h3>
+
+                <div class="grid md:grid-cols-2 gap-6">
+
+                    <!-- Photo -->
+                    <div>
+                        <label class="block text-sm font-medium">Patient Photo</label>
+                        <input type="file" id="photoInput" accept="image/*" class="mt-2 w-full p-2 border rounded-lg">
+                        <div id="photoPreview" class="mt-3"></div>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium">Full Name</label>
+                        <input id="patientName" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium">Date of Birth</label>
+                        <input type="date" id="dob" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="bloodGroup" class="text-sm font-medium">Blood Group</label>
+                        <select id="bloodGroup" class="mt-2 w-full p-2 border rounded-lg">
+                            <option value="" disabled selected>Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-medium">Body Marks / Identification</label>
+                        <input id="bodyMarks" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 2: CONTACT INFORMATION -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-700 mb-4">2. Contact Information</h3>
+
+                <div class="grid md:grid-cols-2 gap-6">
+
+                    <div>
+                        <label class="text-sm font-medium">Address</label>
+                        <input id="address" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium">Contact Number</label>
+                        <input id="contact" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-medium">Emergency Contact</label>
+                        <input id="emergencyContact" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 3: CRITICAL ALERTS -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-red-700 mb-4">3. Critical Alerts</h3>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="text-sm font-medium">Allergies</label>
+                        <input id="allergies" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium">Medical Alerts</label>
+                        <input id="medicalAlerts" class="mt-2 w-full p-2 border rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- SECTION 4: MEDICAL HISTORY -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-700 mb-4">4. Medical History</h3>
+
+                <div class="space-y-4">
+                    <textarea id="medicalHistory" placeholder="Medical history..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+
+                    <textarea id="medications" placeholder="Current medications..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+
+                    <textarea id="familyHistory" placeholder="Family medical history..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+
+                    <textarea id="lifestyle" placeholder="Lifestyle information..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+
+                    <textarea id="physicalExam" placeholder="Physical examination results..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+
+                    <textarea id="additionalNotes" placeholder="Additional notes..."
+                        class="w-full p-3 border rounded-lg"></textarea>
+                </div>
+            </div>
+
+            <!-- SECTION 5: DOCUMENT UPLOAD -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-700 mb-4">5. Uploaded Documents</h3>
+
+                <div class="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50"
+                    onclick="document.getElementById('fileInput').click()">
+
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-600"></i>
+                    <p class="text-gray-600 mt-2">Click or drag files to upload</p>
+                </div>
+
+                <input type="file" id="fileInput" multiple hidden>
+                <div id="fileList" class="mt-3"></div>
+
+            </div>
+
+            <!-- SECTION 6: PROVIDER INFO -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-700 mb-4">6. Provider Information</h3>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <input id="providerName" class="p-2 border rounded-lg" placeholder="Provider Name" disabled>
+                    <input id="providerContact" class="p-2 border rounded-lg" hidden placeholder="Provider Contact">
+                    <input id="providerAffiliation" class="p-2 border rounded-lg" hidden placeholder="Affiliation">
+                    <input type="date" id="lastUpdate" class="p-2 border rounded-lg">
+                </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="flex space-x-4">
+                <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-save"></i> Save Record
+                </button>
+
+                <button type="button" onclick="clearForm()"
+                    class="bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <div id="fingerprintModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 fade-in">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4" id="modalTitle">Scan Fingerprint</h3>
+                <div class="bg-indigo-50 rounded-xl p-8 mb-6">
+                    <svg id="modalFingerprintIcon" class="w-32 h-32 text-indigo-600 mx-auto fingerprint-scan"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+                        </path>
+                    </svg>
+                    <p class="text-indigo-700 font-semibold mt-4" id="modalScanText">Place finger on scanner...</p>
+                </div>
+                <!-- <div class="flex space-x-4">
+                    <button onclick="simulateFingerprintScan()"
+                        class="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                        Simulate Scan
+                    </button>
+                    <button onclick="closeFingerprintModal()"
+                        class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        document.getElementById('providerName').value = localStorage.getItem('AdminName') || "";
+
+        function scanFingerprint() {
+            currentMode = 'assign';
+            document.getElementById('modalTitle').textContent = 'Assign Fingerprint ID';
+            document.getElementById('modalScanText').textContent = 'Place finger on scanner...';
+            document.getElementById('fingerprintModal').classList.remove('hidden');
+        }
+
+        function closeFingerprintModal() {
+            document.getElementById('fingerprintModal').classList.add('hidden');
+            document.getElementById('modalScanText').textContent = 'Place finger on scanner...';
+        }
+
+        let currentTask = null;
+
+        async function pollTask() {
+            if (!currentTask) return;
+
+            let res = await fetch("/task/" + currentTask);
+            let data = await res.json();
+
+            //document.getElementById("log").textContent =
+            //   JSON.stringify(data, null, 2);
+
+            console.log(JSON.stringify(data, null, 2));
+
+
+            if (data.status === "place_finger" || data.status === "place_finger_1" || data.status === "place_finger_2") {
+
+                // document.getElementById("vstat").innerText = "place your finger...";
+
+                scanFingerprint();
+                document.getElementById('modalScanText').textContent = data.status + ' on scanner...';
+
+
+            }
+
+            if (data.status === "done" || data.status === "error" || data.status === "matched" || data.status === "nomatch" || data.status === "mismatch" || data.status === "exists") {
+                // document.getElementById("vstat").innerText = "";
+
+                alert("status: " + data.status)
+                closeFingerprintModal()
+                if (data.status === "done") {
+
+                    window.location.href = "/";
+
+                }
+
+                return;
+            }
+
+
+            setTimeout(pollTask, 1000);
+        }
+
+        document.getElementById("patient_form").onsubmit = async (e) => {
+            e.preventDefault();
+
+
+            const formData = new FormData();
+
+            // --- Patient identity ---
+            formData.append("full_name", document.getElementById("patientName").value);
+            formData.append("dob", document.getElementById("dob").value);
+            formData.append("blood_group", document.getElementById("bloodGroup").value);
+            formData.append("body_marks", document.getElementById("bodyMarks").value);
+
+            // --- Contact info ---
+            formData.append("address", document.getElementById("address").value);
+            formData.append("contact", document.getElementById("contact").value);
+            formData.append("emergency_contact", document.getElementById("emergencyContact").value);
+
+            // --- Alerts ---
+            formData.append("allergies", document.getElementById("allergies").value);
+            formData.append("medical_alerts", document.getElementById("medicalAlerts").value);
+
+            // --- Medical history ---
+            formData.append("medical_history", document.getElementById("medicalHistory").value);
+            formData.append("medications", document.getElementById("medications").value);
+            formData.append("family_history", document.getElementById("familyHistory").value);
+            formData.append("lifestyle", document.getElementById("lifestyle").value);
+            formData.append("physical_exam", document.getElementById("physicalExam").value);
+            formData.append("additional_notes", document.getElementById("additionalNotes").value);
+
+            // --- Provider info ---
+            formData.append("provider_name", document.getElementById("providerName").value);
+            formData.append("provider_contact", document.getElementById("providerContact").value);
+            formData.append("provider_affiliation", document.getElementById("providerAffiliation").value);
+            formData.append("last_update", document.getElementById("lastUpdate").value);
+
+            // --- Photo ---
+            const photoFile = document.getElementById("photoInput").files[0];
+            if (photoFile) {
+                formData.append("photo", photoFile);
+            }
+
+            // --- Multiple documents ---
+            const docs = document.getElementById("fileInput").files;
+            for (let i = 0; i < docs.length; i++) {
+                formData.append("documents[]", docs[i]);
+            }
+
+            // -------- Send to backend --------
+            let res = await fetch("/add_user", {
+                method: "POST",
+                body: formData
+            });
+
+            let data = await res.json();
+            currentTask = data.task_id;
+
+            pollTask();
+
+        };
+
+    </script>
+    <!-- IMAGE PREVIEW SCRIPT -->
+    <script>
+        document.getElementById("photoInput").addEventListener("change", function () {
+            const preview = document.getElementById("photoPreview");
+            preview.innerHTML = "";
+
+            const file = this.files[0];
+            if (file) {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.className =
+                    "w-32 h-32 object-cover rounded-lg shadow-lg border-2 border-indigo-200";
+                preview.appendChild(img);
+            }
+        });
+    </script>
+
+    <script>
+        document.getElementById("fileInput").addEventListener("change", function () {
+            const fileList = document.getElementById("fileList");
+            fileList.innerHTML = ""; // Clear previous list
+
+            const files = this.files;
+
+            if (files.length === 0) {
+                fileList.innerHTML = "<p class='text-gray-500'>No files selected.</p>";
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const fileItem = document.createElement("div");
+                fileItem.className = "p-2 bg-gray-100 rounded-lg mb-2 flex items-center space-x-2";
+
+                fileItem.innerHTML = `
+            <i class="fas fa-file text-indigo-600"></i>
+            <span class="text-gray-700">${files[i].name}</span>
+        `;
+
+                fileList.appendChild(fileItem);
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

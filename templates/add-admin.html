@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+        }
+
+        .fingerprint-scan {
+            animation: pulse-ring 2s infinite;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Admin Management</h1>
+            <button onclick="confirmDeleteAll()"
+    class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors ml-4">
+    Delete All Data
+</button>
+        </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto p-6 space-y-8">
+
+        <!-- ADD ADMIN FORM -->
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-4">Add New Admin</h2>
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <input type="text" id="name" placeholder="Enter admin name"
+                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="startScan()"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                    Add Admin
+                </button>
+
+            </div>
+        </div>
+
+        <!-- LIST OF ADMINS -->
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-4">Admin List</h2>
+            <ul id="adminList" class="list-disc pl-5 space-y-2 text-gray-700">
+                <!-- Admin items will appear here -->
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- FINGERPRINT MODAL -->
+    <div id="fingerprintModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 fade-in">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4" id="modalTitle">Scan Fingerprint</h3>
+                <div class="bg-indigo-50 rounded-xl p-8 mb-6">
+                    <svg id="modalFingerprintIcon" class="w-32 h-32 text-indigo-600 mx-auto fingerprint-scan"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+                        </path>
+                    </svg>
+                    <p class="text-indigo-700 font-semibold mt-4" id="modalScanText">Place finger on scanner...</p>
+                </div>
+                <!-- <div class="flex space-x-4">
+                    <button onclick="simulateFingerprintScan()"
+                        class="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                        Simulate Scan
+                    </button>
+                    <button onclick="closeFingerprintModal()"
+                        class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        // Open fingerprint modal
+        function openFingerprintModal() {
+            document.getElementById('modalTitle').textContent = 'Scan Fingerprint';
+            document.getElementById('modalScanText').textContent = 'Place finger on scanner...';
+            document.getElementById('fingerprintModal').classList.remove('hidden');
+        }
+
+        // Close fingerprint modal
+        function closeFingerprintModal() {
+            document.getElementById('fingerprintModal').classList.add('hidden');
+        }
+
+
+        let currentTask = null;
+
+        async function pollTask() {
+            if (!currentTask) return;
+
+            let res = await fetch("/task/" + currentTask);
+            let data = await res.json();
+
+
+            console.log(JSON.stringify(data, null, 2));
+
+
+            if (data.status === "place_finger" || data.status === "place_finger_1" || data.status === "place_finger_2") {
+
+                // document.getElementById("vstat").innerText = "place your finger...";
+                
+                openFingerprintModal();
+                document.getElementById('modalScanText').textContent = data.status+' on scanner...';
+                
+
+            }
+
+            if (data.status === "done" || data.status === "error" || data.status === "matched" || data.status === "nomatch" || data.status === "mismatch" || data.status === "exists") {
+                // document.getElementById("vstat").innerText = "";
+                alert("status: "+data.status)
+               
+                closeFingerprintModal()
+                 window.location.reload(true);
+                return;
+            }
+
+            setTimeout(pollTask, 1000);
+        }
+
+        async function startScan() {
+
+            let name = document.getElementById("name").value;
+            if (!name) {
+                alert("Enter name first!");
+                return;
+            }
+
+            let res = await fetch("/hidden/add_admin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name })
+            });
+
+            let data = await res.json();
+            currentTask = data.task_id;
+
+            pollTask();
+
+        };
+
+        async function loadAdmins() {
+            const r = await fetch('/hidden/list_admins');
+
+            let admins = await r.json();
+
+            const ul = document.getElementById('adminList');
+
+            admins.forEach(admin => {
+                const li = document.createElement('li');
+                li.textContent = `${admin.name} (fingerId: ${admin.template_position})`;
+                ul.appendChild(li);
+            });
+
+        }
+
+        window.onload = loadAdmins;
+        
+        
+        
+        async function confirmDeleteAll() {
+
+    const ok = confirm("WARNING!\n\nThis will delete:\nALL users\nALL admins\n ALL fingerprint templates\n\nThis action is IRREVERSIBLE.\n\nDo you really want to continue?");
+    if (!ok) return;
+
+    // Start delete request
+    let res = await fetch("/hidden/admin/delete_all_data", {
+        method: "DELETE"
+    });
+
+    if (!res.ok) {
+        alert("Error deleting data!");
+        return;
+    }
+
+    // Show modal while deleting
+    openFingerprintModal();
+    document.getElementById("modalTitle").textContent = "Deleting Everything...";
+    document.getElementById("modalScanText").textContent = "Please wait...";
+    document.getElementById("modalFingerprintIcon").classList.add('hidden');
+
+    // Wait 1.2s for UI animation then reload
+    setTimeout(() => {
+        closeFingerprintModal();
+        alert("All data deleted successfully.");
+        window.location.reload(true);
+    }, 1200);
+}
+
+
+    </script>
+
+</body>
+
+</html>

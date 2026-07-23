@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>MediFolio - Search Blood Group</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center space-x-3">
+    <div class="bg-indigo-600 p-2 rounded-lg">
+      <i class="fas fa-heartbeat text-white text-xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">MediFolio</h1>
+      <p class="text-xs text-gray-500">Secure Medical Records</p>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-5xl mx-auto p-6">
+  <a href="/" class="inline-flex items-center space-x-2 mb-3 text-indigo-700 hover:text-indigo-900 font-medium">
+    <i class="fas fa-arrow-left"></i><span>Back to Dashboard</span>
+  </a>
+
+  <h2 class="text-3xl font-bold text-gray-800 mb-6">Search by Blood Group</h2>
+
+  <div class="bg-white rounded-xl shadow-lg p-6 mb-6 flex gap-4">
+    <select id="bloodGroupSearch" class="flex-1 border rounded-lg px-4 py-2">
+      <option value="">Select Blood Group</option>
+      <option>A+</option><option>A-</option>
+      <option>B+</option><option>B-</option>
+      <option>AB+</option><option>AB-</option>
+      <option>O+</option><option>O-</option>
+    </select>
+    <button onclick="searchByBloodGroup()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg">
+      <i class="fas fa-search mr-2"></i>Search
+    </button>
+  </div>
+
+  <div class="text-right mb-4">
+    <button onclick="downloadResultsPDF()" class="bg-red-600 text-white px-6 py-2 rounded-lg">
+      <i class="fas fa-file-pdf mr-2"></i>Save as PDF
+    </button>
+  </div>
+
+  <div id="bloodGroupResults" class="space-y-4"></div>
+</div>
+
+<script>
+let patients = [];
+
+window.onload = async () => {
+  const r = await fetch('/list_users');
+  patients = await r.json();
+};
+
+function searchByBloodGroup() {
+  const group = bloodGroupSearch.value;
+  const box = bloodGroupResults;
+  box.innerHTML = "";
+
+  if (!group) return box.innerHTML = "<p>Select blood group</p>";
+
+  const list = patients.filter(p => p.blood_group === group);
+  if (!list.length) return box.innerHTML = "<p>No data found</p>";
+
+  list.forEach(p => {
+    box.innerHTML += `
+      <div class="bg-white p-5 rounded-lg shadow flex gap-4">
+        <img src="${p.photo}" class="w-20 h-20 rounded object-cover border">
+        <div>
+          <p><b>Name:</b> ${p.full_name}</p>
+          <p><b>Blood Group:</b> ${p.blood_group}</p>
+          <p><b>Contact:</b> ${p.contact}</p>
+          <p><b>Address:</b> ${p.address}</p>
+        </div>
+      </div>`;
+  });
+}
+
+async function downloadResultsPDF() {
+  const group = bloodGroupSearch.value;
+  if (!group) return alert("Select blood group first");
+
+  const list = patients.filter(p => p.blood_group === group);
+  if (!list.length) return alert("No data to export");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p","mm","a4");
+
+  async function img64(url){
+    const r = await fetch(url);
+    const b = await r.blob();
+    return new Promise(res=>{
+      const fr = new FileReader();
+      fr.onloadend=()=>res(fr.result);
+      fr.readAsDataURL(b);
+    });
+  }
+
+  let y = 15;
+  doc.setFontSize(22);
+  doc.text("Medical Record Report",105,y,{align:"center"});
+  y+=10;
+  doc.setFontSize(12);
+  doc.text("Blood Group: "+group,15,y);
+  y+=10;
+
+  for (const p of list) {
+    if (y>260){doc.addPage();y=15;}
+
+    // === FIXED PATIENT BLOCK ALIGNMENT ===
+const blockStartY = y;
+
+// ---- PHOTO (aligned with text) ----
+const imgX = 150;
+const imgY = blockStartY;
+const imgW = 30;
+const imgH = 30;
+
+try {
+  const img = await img64(p.photo);
+
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+  doc.rect(imgX - 1, imgY - 1, imgW + 2, imgH + 2);
+  doc.addImage(img, "JPEG", imgX, imgY, imgW, imgH);
+} catch (e) {}
+
+// ---- TEXT ----
+doc.setFontSize(13);
+doc.text(p.full_name, 15, blockStartY);
+
+doc.setFontSize(11);
+doc.text("DOB: " + p.dob, 15, blockStartY + 7);
+doc.text("Blood Group: " + p.blood_group, 90, blockStartY + 7);
+
+doc.text("Contact: " + p.contact, 15, blockStartY + 14);
+doc.text("Address: " + p.address, 15, blockStartY + 21);
+
+// ---- MOVE Y BELOW PHOTO ----
+y = blockStartY + imgH + 6;
+
+// ---- DIVIDER (AFTER PHOTO) ----
+doc.setDrawColor(180);
+doc.setLineWidth(0.3);
+doc.line(15, y, 140, y);
+
+y += 8;
+
+  }
+
+  doc.save("MediFolio_BloodGroup_"+group+"_Report.pdf");
+}
+</script>
+
+</body>
+</html>

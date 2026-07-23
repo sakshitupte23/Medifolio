@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>MediFolio - Patient Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+    }
+
+    .fingerprint-scan {
+      animation: pulse-ring 2s infinite;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-600 p-2 rounded-lg">
+          <i class="fas fa-heartbeat text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">MediFolio</h1>
+          <p class="text-xs text-gray-500">Secure Medical Records</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <a href="/" class="inline-flex items-center space-x-2 m-3 text-indigo-700 hover:text-indigo-900 font-medium">
+    <i class="fas fa-arrow-left"></i>
+    <span>Back to Dashboard</span>
+  </a>
+  <!-- MAIN CONTENT -->
+  <!-- SECTION 1: Button to Trigger Fingerprint -->
+  <div class="max-w-5xl mx-auto p-6 text-center">
+    <button onclick="startValidate()"
+      class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+      Get Patient Data
+    </button>
+  </div>
+
+  <!-- FINGERPRINT MODAL -->
+  <div id="fingerprintModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 fade-in">
+      <div class="text-center">
+        <h3 class="text-2xl font-bold text-gray-800 mb-4" id="modalTitle">
+          Scan Fingerprint
+        </h3>
+        <div class="bg-indigo-50 rounded-xl p-8 mb-6">
+          <svg id="modalFingerprintIcon" class="w-32 h-32 text-indigo-600 mx-auto fingerprint-scan" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+            </path>
+          </svg>
+          <p class="text-indigo-700 font-semibold mt-4" id="modalScanText">
+            Place finger on scanner...
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Patient Data (Hidden Initially) -->
+  <div id="patientDataSection" class="max-w-5xl mx-auto p-6 space-y-8 hidden">
+    <h2 class="text-3xl font-bold text-gray-800">Patient Details</h2>
+    <div class="text-right">
+  <button onclick="openEditDialog()"
+    class="bg-yellow-500 text-white py-2 px-5 rounded-lg font-semibold hover:bg-yellow-600 transition">
+    <i class="fas fa-edit mr-2"></i>Edit Data
+  </button>
+</div>
+
+    <!-- PATIENT IDENTITY -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-4">
+        Patient Identity
+      </h3>
+      <div class="grid md:grid-cols-2 gap-6 items-center">
+        <div>
+          <img id="displayPhoto" src="" alt="Patient Photo"
+            class="w-32 h-32 object-cover rounded-lg shadow-lg border-2 border-indigo-200" />
+        </div>
+        <div>
+          <p><strong>Full Name:</strong> <span id="displayName"></span></p>
+          <p><strong>Date of Birth:</strong> <span id="displayDOB"></span></p>
+          <p>
+            <strong>Blood Group:</strong> <span id="displayBloodGroup"></span>
+          </p>
+          <p>
+            <strong>Body Marks / Identification:</strong>
+            <span id="displayBodyMarks"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- CONTACT INFORMATION -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-4">
+        Contact Information
+      </h3>
+      <p><strong>Address:</strong> <span id="displayAddress"></span></p>
+      <p>
+        <strong>Contact Number:</strong> <span id="displayContact"></span>
+      </p>
+      <p>
+        <strong>Emergency Contact:</strong>
+        <span id="displayEmergencyContact"></span>
+      </p>
+    </div>
+
+    <!-- CRITICAL ALERTS -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-red-700 mb-4">Critical Alerts</h3>
+      <p><strong>Allergies:</strong> <span id="displayAllergies"></span></p>
+      <p>
+        <strong>Medical Alerts:</strong>
+        <span id="displayMedicalAlerts"></span>
+      </p>
+    </div>
+    <!-- MEDICAL HISTORY -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-4">
+        Medical History
+      </h3>
+      <p>
+        <strong>Medical History:</strong>
+        <span id="displayMedicalHistory"></span>
+      </p>
+      <p>
+        <strong>Current Medications:</strong>
+        <span id="displayMedications"></span>
+      </p>
+      <p>
+        <strong>Family History:</strong>
+        <span id="displayFamilyHistory"></span>
+      </p>
+      <p>
+        <strong>Lifestyle Information:</strong>
+        <span id="displayLifestyle"></span>
+      </p>
+      <p>
+        <strong>Physical Examination Results:</strong>
+        <span id="displayPhysicalExam"></span>
+      </p>
+      <p>
+        <strong>Additional Notes:</strong>
+        <span id="displayAdditionalNotes"></span>
+      </p>
+    </div>
+    <!-- DOCUMENTS -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-4">
+        Uploaded Documents
+      </h3>
+      <ul id="displayFiles" class="list-disc pl-5 space-y-1"></ul>
+    </div>
+    <!-- PROVIDER INFO -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-4">
+        Provider Information
+      </h3>
+      <p>
+        <strong>Provider Name:</strong> <span id="displayProviderName"></span>
+      </p>
+      <p>
+        <strong>Contact:</strong> <span id="displayProviderContact"></span>
+      </p>
+      <p>
+        <strong>Affiliation:</strong>
+        <span id="displayProviderAffiliation"></span>
+      </p>
+      <p>
+        <strong>Last Update:</strong> <span id="displayLastUpdate"></span>
+      </p>
+    </div>
+  
+    <!-- SAVE AS PDF BUTTON -->
+    <div class="text-center mt-10">
+      <button onclick="downloadPDF()"
+        class="bg-red-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-red-700 transition">
+        <i class="fas fa-file-pdf mr-2"></i>
+        Save & Download Medical Report (PDF)
+      </button>
+    </div>
+
+
+</div>
+  
+  
+  <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[90vh] overflow-y-auto fade-in p-6">
+
+    <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-indigo-700">Edit Patient Data</h2>
+            <button onclick="closeEditDialog()"
+                    class="text-gray-600 hover:text-red-600 text-xl font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+    <form id="editForm" class="space-y-10">
+
+      <!-- SECTION 1 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-indigo-700 mb-4">1. Patient Identity</h3>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+          <div>
+            <label class="block text-sm font-medium">Update Photo</label>
+            <input type="file" id="editPhoto" accept="image/*" class="mt-2 w-full p-2 border rounded-lg">
+            <img id="editPhotoPreview" class="w-32 h-32 mt-3 rounded-lg shadow">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Full Name</label>
+            <input id="editFullName" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+
+          <div>
+            <label class="text-sm font-medium">Date of Birth</label>
+            <input id="editDOB" type="date" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+
+          <div>
+            <label class="text-sm font-medium">Blood Group</label>
+            <select id="editBloodGroup" class="mt-2 w-full p-2 border rounded-lg">
+              <option value="A+">A+</option><option value="A-">A-</option>
+              <option value="B+">B+</option><option value="B-">B-</option>
+              <option value="AB+">AB+</option><option value="AB-">AB-</option>
+              <option value="O+">O+</option><option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-sm font-medium">Body Marks</label>
+            <input id="editBodyMarks" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- SECTION 2 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-indigo-700 mb-4">2. Contact Information</h3>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm font-medium">Address</label>
+            <input id="editAddress" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+
+          <div>
+            <label class="text-sm font-medium">Contact Number</label>
+            <input id="editContact" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-sm font-medium">Emergency Contact</label>
+            <input id="editEmergency" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-red-700 mb-4">3. Critical Alerts</h3>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm font-medium">Allergies</label>
+            <input id="editAllergies" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="text-sm font-medium">Medical Alerts</label>
+            <input id="editMedicalAlerts" class="mt-2 w-full p-2 border rounded-lg">
+          </div>
+        </div>
+      </div>
+
+
+      <!-- SECTION 4 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-indigo-700 mb-4">4. Medical History</h3>
+
+        <textarea id="editMedicalHistory" class="w-full p-3 border rounded-lg"></textarea>
+        <textarea id="editMedications" class="w-full p-3 border rounded-lg"></textarea>
+        <textarea id="editFamilyHistory" class="w-full p-3 border rounded-lg"></textarea>
+        <textarea id="editLifestyle" class="w-full p-3 border rounded-lg"></textarea>
+        <textarea id="editPhysicalExam" class="w-full p-3 border rounded-lg"></textarea>
+        <textarea id="editNotes" class="w-full p-3 border rounded-lg"></textarea>
+      </div>
+
+
+      <!-- SECTION 5 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-indigo-700 mb-4">5. Documents</h3>
+
+        <label class="text-sm">Upload New Documents</label>
+        <input type="file" multiple id="editDocuments" class="mt-2 p-2 border rounded">
+
+        <p class="mt-3 font-medium text-gray-700">Existing Documents:</p>
+        <ul id="editDocumentList" class="list-disc pl-4"></ul>
+      </div>
+
+
+      <!-- SECTION 6 -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-indigo-700 mb-4">6. Provider Information</h3>
+
+        <input id="editProviderName" class="p-2 border rounded-lg w-full mb-3" disabled >
+        <input id="editProviderContact" class="p-2 border rounded-lg w-full mb-3" hidden >
+        <input id="editProviderAffiliation" class="p-2 border rounded-lg w-full mb-3" hidden >
+        <input id="editLastUpdate" type="date" class="p-2 border rounded-lg w-full">
+      </div>
+
+      <div class="flex justify-end space-x-4">
+        <button type="button" onclick="closeEditDialog()" class="bg-gray-500 text-white px-6 py-3 rounded-lg">
+          Cancel
+        </button>
+        <button type="button" onclick="submitEditForm()" class="bg-green-600 text-white px-6 py-3 rounded-lg">
+          Save Changes
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+  <script>
+  
+  let currentPatient = null;
+
+    // Open fingerprint modal
+    function openFingerprintModal() {
+      document.getElementById('modalTitle').textContent = 'Scan Fingerprint';
+      document.getElementById('modalScanText').textContent = 'Place finger on scanner...';
+      document.getElementById('fingerprintModal').classList.remove('hidden');
+    }
+
+    // Close fingerprint modal
+    function closeFingerprintModal() {
+      document.getElementById('fingerprintModal').classList.add('hidden');
+    }
+
+
+    let currentTask = null;
+
+    async function pollTask() {
+      if (!currentTask) return;
+
+      let res = await fetch("/task/" + currentTask);
+      let data = await res.json();
+
+
+      console.log(JSON.stringify(data, null, 2));
+
+
+      if (data.status === "place_finger" || data.status === "place_finger_1" || data.status === "place_finger_2") {
+
+        // document.getElementById("vstat").innerText = "place your finger...";
+
+        openFingerprintModal();
+        document.getElementById('modalScanText').textContent = data.status + ' on scanner...';
+
+      }
+      
+            
+      if(data.status === "matched" && data.user===null){
+          alert("Patient Data not found!")
+
+        closeFingerprintModal()
+          return;
+      
+      }
+
+      if (data.status === "matched") {
+
+        const patient = data.user;
+        currentPatient = patient;
+
+        document.getElementById("displayPhoto").src = patient.photo;
+        document.getElementById("displayName").innerText = patient.full_name;
+        document.getElementById("displayDOB").innerText = patient.dob;
+        document.getElementById("displayBloodGroup").innerText = patient.blood_group;
+        document.getElementById("displayBodyMarks").innerText = patient.body_marks || "";
+        document.getElementById("displayAddress").innerText = patient.address;
+        document.getElementById("displayContact").innerText = patient.contact;
+        document.getElementById("displayEmergencyContact").innerText = patient.emergency_contact;
+
+        document.getElementById("displayAllergies").innerText = patient.allergies;
+        document.getElementById("displayMedicalAlerts").innerText = patient.medical_alerts;
+        document.getElementById("displayMedicalHistory").innerText = patient.medical_history;
+        document.getElementById("displayMedications").innerText = patient.medications;
+        document.getElementById("displayFamilyHistory").innerText = patient.family_history;
+        document.getElementById("displayLifestyle").innerText = patient.lifestyle;
+        document.getElementById("displayPhysicalExam").innerText = patient.physical_exam;
+        document.getElementById("displayAdditionalNotes").innerText = patient.additional_notes;
+
+        const fileList = document.getElementById("displayFiles");
+        fileList.innerHTML = "";
+
+        patient.documents.forEach((file) => {
+          const li = document.createElement("li");
+
+          const link = document.createElement("a");
+          link.className = "text-blue-600 hover:text-blue-800 underline";
+          link.href = file;           // file path
+          link.innerText = "Download " + file;
+          link.download = "";         // forces download
+
+          li.appendChild(link);
+          fileList.appendChild(li);
+        });
+
+        document.getElementById("displayProviderName").innerText = patient.provider_name;
+        document.getElementById("displayProviderContact").innerText = patient.provider_contact;
+        document.getElementById("displayProviderAffiliation").innerText = patient.provider_affiliation;
+        document.getElementById("displayLastUpdate").innerText = patient.last_update;
+        // Show patient data section
+        document.getElementById("patientDataSection").classList.remove("hidden");
+
+
+        closeFingerprintModal()
+        return;
+      }
+
+      
+
+      if (data.status === "done" || data.status === "error" || data.status === "matched" || data.status === "nomatch" || data.status === "mismatch" || data.status === "exists") {
+        // document.getElementById("vstat").innerText = "";
+        alert("status: " + data.status)
+
+        closeFingerprintModal()
+        window.location.reload(true);
+        return;
+      }
+
+      setTimeout(pollTask, 1000);
+    }
+
+
+
+
+
+    async function startValidate() {
+      let res = await fetch("/validate_user");
+      let data = await res.json();
+      currentTask = data.task_id;
+      pollTask();
+    }
+
+
+function openEditDialog() {
+  if (!currentPatient) return;
+
+  document.getElementById("editFullName").value = currentPatient.full_name;
+  document.getElementById("editDOB").value = currentPatient.dob;
+  document.getElementById("editBloodGroup").value = currentPatient.blood_group;
+  document.getElementById("editBodyMarks").value = currentPatient.body_marks;
+
+  document.getElementById("editAddress").value = currentPatient.address;
+  document.getElementById("editContact").value = currentPatient.contact;
+  document.getElementById("editEmergency").value = currentPatient.emergency_contact;
+
+  document.getElementById("editAllergies").value = currentPatient.allergies;
+  document.getElementById("editMedicalAlerts").value = currentPatient.medical_alerts;
+
+  document.getElementById("editMedicalHistory").value = currentPatient.medical_history;
+  document.getElementById("editMedications").value = currentPatient.medications;
+  document.getElementById("editFamilyHistory").value = currentPatient.family_history;
+  document.getElementById("editLifestyle").value = currentPatient.lifestyle;
+  document.getElementById("editPhysicalExam").value = currentPatient.physical_exam;
+  document.getElementById("editNotes").value = currentPatient.additional_notes;
+
+  document.getElementById("editProviderName").value = currentPatient.provider_name;
+  document.getElementById("editProviderContact").value = currentPatient.provider_contact;
+  document.getElementById("editProviderAffiliation").value = currentPatient.provider_affiliation;
+  document.getElementById("editLastUpdate").value = currentPatient.last_update;
+  // photo preview
+  document.getElementById("editPhotoPreview").src = currentPatient.photo;
+
+  // Documents list
+  const docList = document.getElementById("editDocumentList");
+  docList.innerHTML = "";
+  currentPatient.documents.forEach(doc => {
+    let li = document.createElement("li");
+    li.innerHTML = `<a href="${doc}" class="text-blue-600 underline" target="_blank">${doc}</a>`;
+    docList.appendChild(li);
+  });
+
+  // show dialog
+  document.getElementById("editModal").classList.remove("hidden");
+}
+
+
+async function submitEditForm() {
+
+  let formData = new FormData();
+
+  formData.append("full_name", document.getElementById("editFullName").value);
+  formData.append("dob", document.getElementById("editDOB").value);
+  formData.append("blood_group", document.getElementById("editBloodGroup").value);
+  formData.append("body_marks", document.getElementById("editBodyMarks").value);
+
+  formData.append("address", document.getElementById("editAddress").value);
+  formData.append("contact", document.getElementById("editContact").value);
+  formData.append("emergency_contact", document.getElementById("editEmergency").value);
+
+  formData.append("allergies", document.getElementById("editAllergies").value);
+  formData.append("medical_alerts", document.getElementById("editMedicalAlerts").value);
+
+  formData.append("medical_history", document.getElementById("editMedicalHistory").value);
+  formData.append("medications", document.getElementById("editMedications").value);
+  formData.append("family_history", document.getElementById("editFamilyHistory").value);
+  formData.append("lifestyle", document.getElementById("editLifestyle").value);
+  formData.append("physical_exam", document.getElementById("editPhysicalExam").value);
+  formData.append("additional_notes", document.getElementById("editNotes").value);
+
+  formData.append("provider_name", document.getElementById("editProviderName").value);
+  formData.append("provider_contact", document.getElementById("editProviderContact").value);
+  formData.append("provider_affiliation", document.getElementById("editProviderAffiliation").value);
+  formData.append("last_update", document.getElementById("editLastUpdate").value);
+
+  // new photo
+  if (document.getElementById("editPhoto").files[0])
+    formData.append("photo", document.getElementById("editPhoto").files[0]);
+
+  // new documents
+  let docs = document.getElementById("editDocuments").files;
+  for (let d of docs) formData.append("documents[]", d);
+
+  let res = await fetch(`/update_user/${currentPatient.id}`, {
+    method: "POST",
+    body: formData
+  });
+
+  let data = await res.json();
+
+  if (data.success) {
+    alert("Updated successfully!");
+    location.reload();
+  } else {
+    alert("Update failed: " + data.error);
+  }
+}
+
+function closeEditDialog() {
+    document.getElementById("editModal").classList.add("hidden");
+}
+
+
+  </script>
+
+
+<script>
+/* ===== ORGANIZED MEDICAL REPORT PDF (WITH PHOTO) ===== */
+async function downloadPDF() {
+  if (!currentPatient) {
+    alert("No patient data available");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
+
+  async function imageToBase64(url) {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  }
+ 
+  let y = 15;
+
+// Header title
+doc.setFontSize(22);
+doc.text("Medical Record of Medifolio", 105, y, { align: "center" });
+
+// move y below title
+y += 10;
+
+// ===== PHOTO BLOCK (RIGHT SIDE) =====
+const photoX = 155;
+const photoY = y;
+const photoW = 35;
+const photoH = 35;
+
+// ===== BASIC DETAILS (LEFT OF PHOTO) =====
+doc.setFontSize(12);
+
+// NAME
+doc.setFont("helvetica", "bold");
+doc.text("Name:", 15, photoY + 6);
+doc.setFont("helvetica", "normal");
+doc.text(currentPatient.full_name, 32, photoY + 6);
+
+// DATE OF BIRTH
+doc.setFont("helvetica", "bold");
+doc.text("Date of Birth:", 15, photoY + 14);
+doc.setFont("helvetica", "normal");
+doc.text(currentPatient.dob, 45, photoY + 14);
+
+// DATE
+doc.setFont("helvetica", "bold");
+doc.text("Date:", 95, photoY + 6);
+doc.setFont("helvetica", "normal");
+doc.text(new Date().toISOString().split("T")[0], 110, photoY + 6);
+
+// BLOOD GROUP
+doc.setFont("helvetica", "bold");
+doc.text("Blood Group:", 95, photoY + 14);
+doc.setFont("helvetica", "normal");
+doc.text(currentPatient.blood_group, 125, photoY + 14);
+
+// draw photo border FIRST
+doc.setDrawColor(0);
+doc.setLineWidth(0.5);
+doc.rect(photoX - 1, photoY - 1, photoW + 2, photoH + 2);
+
+// add photo inside border
+if (currentPatient.photo) {
+  try {
+    const img = await imageToBase64(currentPatient.photo);
+    doc.addImage(img, "JPEG", photoX, photoY, photoW, photoH);
+  } catch (e) {}
+}
+
+// ===== DIVIDER LINE (SAFE POSITION) =====
+const dividerY = photoY + photoH + 6;
+doc.line(15, dividerY, 195, dividerY);
+
+// reset y BELOW photo + divider
+y = dividerY + 10;
+  const section = (title) => {
+  // draw blue bullet as SHAPE (safe)
+  doc.setFillColor(30, 64, 175); // blue
+  doc.circle(17, y - 1, 1.5, "F"); // filled circle
+
+  // title text (ASCII only)
+  doc.setFontSize(13);
+  doc.setTextColor(0, 0, 0);
+  doc.text(title, 22, y);
+
+  // divider
+  y += 2;
+  doc.line(15, y, 195, y);
+
+  // space after title
+  y += 10;
+  doc.setFontSize(11);
+};
+  
+  const field = (label, value) => {
+    doc.text(`-${label}: ${value || "N/A"}`, 18, y);
+    y += 6;
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+  };
+
+  const sectionGap = () => {
+  y += 6; // space AFTER section data
+};
+
+  section("Patient Identity");
+  field("Body Marks / Identification", currentPatient.body_marks);
+  sectionGap();
+
+  section("Contact Information");
+  field("Address", currentPatient.address);
+  field("Contact Number", currentPatient.contact);
+  field("Emergency Contact", currentPatient.emergency_contact);
+  sectionGap();
+
+  section("Critical Alerts");
+  field("Allergies", currentPatient.allergies);
+  field("Medical Alerts", currentPatient.medical_alerts);
+  sectionGap();
+
+  section("Medical History");
+  field("Medical History", currentPatient.medical_history);
+  field("Medications", currentPatient.medications);
+  field("Family History", currentPatient.family_history);
+  field("Lifestyle", currentPatient.lifestyle);
+  field("Physical Examination", currentPatient.physical_exam);
+  field("Additional Notes", currentPatient.additional_notes);
+  sectionGap();
+
+  section("Provider Information");
+  field("Provider Name", currentPatient.provider_name);
+  field("Last Update", currentPatient.last_update);
+
+  y += 10;
+  doc.line(120, y, 195, y);
+  doc.text("Signature", 140, y + 5);
+
+  doc.save(`MediFolio_${currentPatient.full_name}_Medical_Record.pdf`);
+}
+</script>
+
+</body>
+
+</html>
